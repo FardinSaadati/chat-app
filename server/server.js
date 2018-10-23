@@ -24,6 +24,12 @@ io.on('connection', function (socket) {
             return callback('name and room is require');
         }
 
+        var user = users.getUserByName(params.name);
+
+        if (user) {
+            return callback('name alredy exist');
+        }
+
         socket.join(params.room);
         users.removeUser(socket.id);
         users.addUser(socket.id, params.name, params.room);
@@ -37,12 +43,21 @@ io.on('connection', function (socket) {
     });
 
     socket.on('createMessage', function (message, callback) {
-        io.emit('newMessage', createMessage(message.from, message.text));
+        var user = users.getUser(socket.id);
+
+        if (user && isRealString(message.text)) {
+            io.to(user.room).emit('newMessage', createMessage(user.name, message.text));
+        }
+
         callback();
     });
 
     socket.on('createLocationMessage', function (position) {
-        io.emit('newLocationMessage', generateLocationMessage('Admin', position.lat, position.long));
+        var user = users.getUser(socket.id);
+
+        if (user) {
+            io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, position.lat, position.long));
+        }
     });
 
     socket.on('disconnect', function () {

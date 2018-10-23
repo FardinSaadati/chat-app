@@ -29,6 +29,10 @@ class Users {
 
         return nameArray;
     }
+
+    getUserByName(name) {
+        return this.users.filter((user) => user.name === name)[0];
+    }
 }
 
 module.exports = {Users};
